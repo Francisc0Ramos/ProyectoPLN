@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Botón Cambiante</title>
+    <style>
+        #dynamicButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button id="dynamicButton">Presióname</button>
+
+    <script>
+        const button = document.getElementById('dynamicButton');
+
+        // Array de colores y textos
+        const colors = ['red', 'blue', 'green', 'orange', 'purple'];
+        const texts = ['¡Hola!', '¡Adiós!', '¿Cómo estás?', '¡Vamos!', '¡He cambiado!'];
+        let index = 0;
+
+        button.addEventListener('click', () => {
+            // Cambiar color y texto
+            button.style.backgroundColor = colors[index];
+            button.textContent = texts[index];
+
+            // Incrementar el índice (y reiniciar si es necesario)
+            index = (index + 1) % colors.length;
+        });
+    </script>
+</body>
+</html>

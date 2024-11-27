@@ -29,7 +29,68 @@
         }
         canvas {
             border: 2px solid #000;
+            margin: 10px;
         }
+
+        .switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #575757;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
     </style>
 </head>
 <body>
@@ -49,13 +110,19 @@
 
 
                         <div class="mb-2"><i>Dibuja el o los carácteres chinos para la traducción</i></div>
+                        <p class="mt-2">Borrador</p>
+                        <label class="switch">
+                        <input type="checkbox" id="toggleSwitch">
+                            <span class="slider round"></span>
+                        </label>
                         
                         <canvas id="canvas" width="700" height="400"></canvas>
                         
                         <div class="text-center mt-3">
                             <button class="btn btn-primary" id="limpiar" onclick="clearCanvas()">Limpiar</button>
                             <button class="btn btn-success" id="predecir" onclick="saveCanvas()">Predecir</button>
-                            
+
+
                             <div id="resultadoChino">
                                 <h3>Texto Chino:</h3>
                                 <p id="textoChino"></p>
@@ -96,18 +163,39 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
+        let isEreasing = false;
         let lastX = 0;
         let lastY = 0;
+        
 
         // Set initial canvas background to white
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        function getTouchPos(canvas, touchEvent) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: touchEvent.touches[0].clientX - rect.left,
+            y: touchEvent.touches[0].clientY - rect.top
+        };
+    }
 
         // Drawing event listeners
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mouseout', stopDrawing);
+
+        const toggleSwitch = document.getElementById('toggleSwitch');
+
+        canvas.addEventListener('touchstart', startTouchDrawing, { passive: false });
+        canvas.addEventListener('touchmove', touchDraw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+
+
+        toggleSwitch.addEventListener('change', () => {
+            isEreasing = toggleSwitch.checked; // Cambia el valor de la variable según el estado del checkbox
+        });
 
         function startDrawing(e) {
             isDrawing = true;
@@ -120,8 +208,14 @@
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
             ctx.lineTo(e.offsetX, e.offsetY);
+
+            if(isEreasing){
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 20;
+            }else{
             ctx.strokeStyle = '#000';
             ctx.lineWidth = 9;
+            }
             ctx.lineCap = 'round';
             ctx.stroke();
 
@@ -131,6 +225,27 @@
         function stopDrawing() {
             isDrawing = false;
         }
+
+        function startTouchDrawing(e) {
+        e.preventDefault();
+        const touchPos = getTouchPos(canvas, e);
+        isDrawing = true;
+        [lastX, lastY] = [touchPos.x, touchPos.y];
+    }
+
+    function touchDraw(e) {
+        e.preventDefault();
+        if (!isDrawing) return;
+        const touchPos = getTouchPos(canvas, e);
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(touchPos.x, touchPos.y);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 9;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+        [lastX, lastY] = [touchPos.x, touchPos.y];
+    }
 
         function clearCanvas() {
             ctx.fillStyle = 'white';
